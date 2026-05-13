@@ -1,0 +1,363 @@
+
+================================================================================
+         MEDICLOUD - CLOUD NATIVE HOSPITAL MANAGEMENT SYSTEM
+                       PROJECT OVERVIEW
+================================================================================
+Generated: 2026-05-11
+Project Path: CLOUDNATIVEHOSPITALMANAGEMENT/HOSPITAL/TELEMEDICINE/
+
+================================================================================
+1. PROJECT SUMMARY
+================================================================================
+MediCloud is a full-stack telemedicine/hospital management platform built with:
+  - Frontend : React (Vite) + TailwindCSS
+  - Backend  : Node.js + Express.js
+  - Database : MongoDB (Mongoose ODM)
+  - Realtime : Socket.IO (WebSockets)
+  - Auth     : JWT (Access + Refresh Tokens) + Google OAuth
+
+Roles supported: Admin, Doctor, Patient
+Each role has its own dashboard, navigation, and access-controlled routes.
+
+================================================================================
+2. FOLDER STRUCTURE
+================================================================================
+
+TELEMEDICINE/
+├── frontend/                  → React app (Vite)
+│   ├── src/
+│   │   ├── App.jsx            → Root component + all route definitions
+│   │   ├── main.jsx           → React entry point (renders App)
+│   │   ├── index.css          → Global styles, Tailwind base, custom CSS vars
+│   │   ├── pages/
+│   │   │   └── index.jsx      → ALL page components in one file (198KB)
+│   │   ├── components/
+│   │   │   ├── index.jsx      → Shared/reusable components (Navbar, Layout, etc.)
+│   │   │   └── ui/
+│   │   │       └── LoadingSpinner.jsx → Spinner UI component
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx  → Auth state: login, logout, register, googleLogin
+│   │   │   └── ThemeContext.jsx → Dark/Light theme toggle state
+│   │   ├── lib/
+│   │   │   ├── api.js           → Axios instance with JWT interceptors
+│   │   │   ├── utils.js         → Helper functions (formatDate, getStatusColor, etc.)
+│   │   │   └── generateReport.js→ PDF report generation logic
+│   │   └── hooks/               → (empty, reserved for custom hooks)
+│   ├── index.html             → HTML entry point
+│   ├── vite.config.js         → Vite build configuration
+│   ├── tailwind.config.js     → Tailwind custom theme (colors, animations)
+│   └── package.json           → Frontend dependencies
+
+├── backend/                   → Node.js/Express API server
+│   ├── server.js              → Main server file (Express setup, Socket.IO, routes)
+│   ├── routes/index.js        → ALL route definitions in one file
+│   ├── controllers/index.js   → ALL controller functions in one file
+│   ├── models/index.js        → ALL Mongoose models in one file
+│   ├── middleware/index.js    → Auth middleware, file upload, error handler
+│   ├── services/
+│   │   ├── index.js           → DB connect, Socket.IO signaling, cron jobs
+│   │   └── blockchainService.js → Blockchain hash for telemetry data integrity
+│   ├── .env                   → Environment variables
+│   ├── test-api.js            → Manual API test script
+│   ├── test-roles.js          → Role-based access test script
+│   └── test-stats.js          → Dashboard stats test script
+
+================================================================================
+3. FRONTEND - PAGES (frontend/src/pages/index.jsx)
+================================================================================
+ALL pages are exported from a single file: pages/index.jsx (3558 lines)
+
+  PAGE COMPONENT          ROUTE                    DESCRIPTION
+  ─────────────────────────────────────────────────────────────────────────────
+  LandingPage             /                        Public home/marketing page
+  LoginPage               /login                   Email+password & Google login
+  RegisterPage            /register                Registration for patient/doctor
+  AdminDashboard          /admin/dashboard         Admin stats overview
+  DoctorDashboard         /doctor/dashboard        Doctor appointments & patients
+  PatientDashboard        /patient/dashboard       Patient health overview
+  AnalyticsDashboard      /analytics               Appointment trend charts (Recharts)
+  DeveloperDashboard      /developer               Real-time API logs via Socket.IO
+  HospitalsPage           /hospitals               Browse hospitals directory
+  HospitalDetailPage      /hospitals/:id           Single hospital details
+  AddHospitalPage         /admin/hospitals/add     Admin: add new hospital
+  DoctorsPage             /doctors                 Browse doctors directory
+  DoctorProfilePage       /doctors/:id             Single doctor profile
+  PatientsPage            /patients                Doctor/Admin: list of patients
+  ProfilePage             /profile                 Edit own user profile
+  UsersManagementPage     /admin/users             Admin: manage users (toggle/delete)
+  AppointmentsPage        /appointments            View & manage appointments
+  BookAppointment         /appointments/book       Patient: book new appointment
+  PrescriptionsPage       /prescriptions           View prescriptions list
+  MedicalRecordsPage      /records                 EHR / medical records
+  VideoConsultation       /consultation/:roomId    WebRTC video call room
+  ServicesPage            /services                List of medical services
+
+================================================================================
+4. FRONTEND - COMPONENTS (frontend/src/components/index.jsx)
+================================================================================
+ALL shared components are in a single file: components/index.jsx (811 lines)
+
+  COMPONENT                  DESCRIPTION
+  ─────────────────────────────────────────────────────────────────────────────
+  Navbar                     Top navigation bar (links, notifications, user menu,
+                             theme toggle, mobile hamburger menu)
+  DashboardLayout            Sidebar layout used by all dashboard pages
+                             (role-based nav items, logout button)
+  AIAssistant                Floating chat widget (bottom-right) for symptom
+                             checking via AI API
+  EmergencySOS               Floating red SOS button (bottom-left), patients only.
+                             Gets geolocation and calls /emergency/sos API
+  CreatePrescriptionModal    Modal dialog for doctors to create prescriptions
+  TimelineEHR                EHR timeline component showing appointments +
+                             prescriptions in chronological order
+  LoadingSpinner             (ui/LoadingSpinner.jsx) Reusable spinner component
+
+================================================================================
+5. FRONTEND - CONTEXT & UTILITIES
+================================================================================
+
+  FILE                       PURPOSE
+  ─────────────────────────────────────────────────────────────────────────────
+  context/AuthContext.jsx    Global auth state (user, loading, initializing)
+                             Functions: login(), googleLogin(), register(),
+                             logout(), updateUser()
+                             Stores tokens in localStorage
+                             Auto-refreshes expired tokens via interceptor
+
+  context/ThemeContext.jsx   Dark/Light mode state, persisted toggle
+
+  lib/api.js                 Axios instance:
+                             - Base URL: /api/v1
+                             - Auto-injects Bearer token from localStorage
+                             - On 401: auto-refreshes token via /auth/refresh
+                             - On refresh fail: clears storage, redirects /login
+
+  lib/utils.js               Helpers: formatDate(), formatDateTime(),
+                             getStatusColor(), getInitials(),
+                             SPECIALIZATIONS list, TIME_SLOTS list
+
+  lib/generateReport.js      Generates downloadable PDF health reports
+
+================================================================================
+6. ROUTING & ROUTE PROTECTION (frontend/src/App.jsx)
+================================================================================
+
+  Route guards:
+  - PublicRoute    → Redirects logged-in users away from login/register
+  - ProtectedRoute → Redirects unauthenticated users to /login
+                     Also enforces role-based access (allowedRoles prop)
+  - RoleDashboard  → Redirects to correct dashboard based on user.role
+
+  PUBLIC ROUTES (no login needed):
+    /               LandingPage
+    /login          LoginPage
+    /register       RegisterPage
+    /doctors        DoctorsPage
+    /doctors/:id    DoctorProfilePage
+    /hospitals      HospitalsPage
+    /hospitals/:id  HospitalDetailPage
+    /services       ServicesPage
+    /developer      DeveloperDashboard
+
+  PROTECTED ROUTES (login required):
+    /patient/dashboard     → patient only
+    /doctor/dashboard      → doctor only
+    /admin/dashboard       → admin only
+    /admin/users           → admin only
+    /admin/hospitals/add   → admin only
+    /appointments/book     → patient only
+    /patients              → doctor + admin
+    /appointments, /prescriptions, /records, /profile, /analytics,
+    /consultation/:roomId  → any logged-in user
+
+================================================================================
+7. BACKEND - API ROUTES SUMMARY
+================================================================================
+Base URL: http://localhost:5000/api/v1
+Total API Route Groups: 15
+
+  #   ROUTE PREFIX           FILE SECTION    # ENDPOINTS  DESCRIPTION
+  ─────────────────────────────────────────────────────────────────────────────
+  1   /api/v1/auth           routes/index.js     7        Register, login, Google
+                                                          login, refresh token,
+                                                          get me, logout,
+                                                          update password
+
+  2   /api/v1/users          routes/index.js     4        Get all users (admin),
+                                                          update profile,
+                                                          toggle active status,
+                                                          delete user
+
+  3   /api/v1/doctors        routes/index.js     6        Get all doctors, get one,
+                                                          get/update my profile,
+                                                          get appointments,
+                                                          get booked slots
+
+  4   /api/v1/patients       routes/index.js     6        Get/update my profile,
+                                                          get/add medical records,
+                                                          get all patients, get one
+
+  5   /api/v1/appointments   routes/index.js     6        Book, list, get by ID,
+                                                          get by roomId, update,
+                                                          cancel appointment
+
+  6   /api/v1/prescriptions  routes/index.js     3        Create, list, get one
+
+  7   /api/v1/dashboard      routes/index.js     3        Admin stats, doctor stats,
+                                                          patient stats
+
+  8   /api/v1/notifications  routes/index.js     3        Get notifications,
+                                                          mark one read,
+                                                          mark all read
+
+  9   /api/v1/hospitals      routes/index.js     4        Get all, get one,
+                                                          create (admin),
+                                                          update (admin)
+
+  10  /api/v1/payments       routes/index.js     1        Verify Razorpay payment
+
+  11  /api/v1/ai             routes/index.js     1        POST /symptom-checker
+                                                          (AI health assistant)
+
+  12  /api/v1/analytics      routes/index.js     1        GET appointment trend data
+
+  13  /api/v1/emergency      routes/index.js     1        POST /sos (Emergency SOS)
+
+  14  /api/v1/fhir           routes/index.js     2        GET Patient FHIR record,
+                                                          GET Encounter FHIR
+                                                          (HL7 standard)
+
+  15  /api/v1/telemetry      routes/index.js     2        POST /sync (IoT device data),
+                                                          GET telemetry logs
+
+  TOTAL INDIVIDUAL ENDPOINTS: ~50 endpoints
+
+  HEALTH CHECK: GET /health  (no auth, returns server status)
+
+================================================================================
+8. BACKEND - MODELS (backend/models/index.js)
+================================================================================
+All Mongoose schemas are in a single file: models/index.js (259 lines)
+
+  MODEL            COLLECTION       KEY FIELDS
+  ─────────────────────────────────────────────────────────────────────────────
+  User             users            name, email, password, googleId, role
+                                    (admin/doctor/patient), isActive,
+                                    refreshToken, lastLogin
+                                    Methods: comparePassword(), toJSON()
+
+  Doctor           doctors          user (ref), specialization, licenseNumber,
+                                    consultationFee, availability (per day),
+                                    rating, isAvailableForTeleconsult
+
+  Patient          patients         user (ref), dateOfBirth, bloodType,
+                                    allergies, chronicConditions, vitals,
+                                    emergencyContact, medicalHistory
+
+  Appointment      appointments     patient, doctor, date, timeSlot,
+                                    type (in-person/teleconsult), status,
+                                    roomId, paymentStatus, razorpayOrderId,
+                                    problemImage
+
+  Prescription     prescriptions    patient, doctor, appointment, medications[],
+                                    diagnosis, validUntil, isActive
+
+  MedicalRecord    medicalrecords   patient, doctor, type, title, fileUrl,
+                                    diagnosis, isConfidential
+
+  Notification     notifications    recipient, type, title, message,
+                                    isRead, link
+
+  Hospital         hospitals        name, slug, address, services[],
+                                    departments[], totalBeds, rating,
+                                    operatingHours, type, isActive
+
+  TelemetryLog     telemetrylogs    patientId, deviceId, deviceType,
+                                    readings, dataHash, previousHash
+                                    (blockchain-style integrity)
+
+================================================================================
+9. BACKEND - MIDDLEWARE (backend/middleware/index.js)
+================================================================================
+
+  protect       → JWT verification middleware. Checks Bearer token or cookie,
+                  validates JWT, checks user.isActive before granting access.
+
+  authorize     → Role-based access control. Takes roles array, rejects if
+                  req.user.role not in allowed list. (403 Forbidden)
+
+  errorHandler  → Global error handler. Handles Mongoose CastError,
+                  duplicate key (11000), ValidationError, JWT errors.
+
+  upload        → Multer file upload middleware. Saves to uploads/problems/.
+                  Accepts images only, max 5MB.
+
+================================================================================
+10. BACKEND - SERVICES (backend/services/index.js)
+================================================================================
+
+  connectDB()       Connects to MongoDB via MONGODB_URI from .env
+
+  setupSignaling()  Socket.IO WebRTC signaling for video consultations
+                    Events: join-room, offer, answer, ice-candidate, leave-room
+
+  initCronJobs()    Scheduled tasks (node-cron):
+                    - Appointment reminders
+                    - Status updates for past appointments
+
+  blockchainService.js  SHA-256 hash chaining for telemetry log integrity
+
+================================================================================
+11. KEY ENVIRONMENT VARIABLES
+================================================================================
+
+  BACKEND (.env):
+    PORT              Server port (default 5000)
+    MONGODB_URI       MongoDB connection string
+    JWT_SECRET        Secret for signing access tokens
+    JWT_REFRESH_SECRET Secret for refresh tokens
+    CLIENT_URL        Frontend URL (for CORS)
+    NODE_ENV          development / production
+    RAZORPAY_KEY_ID   Razorpay payment key
+    RAZORPAY_SECRET   Razorpay secret
+    GOOGLE_CLIENT_ID  Google OAuth client ID
+    GEMINI_API_KEY    Google Gemini AI key (for symptom checker)
+
+  FRONTEND (.env):
+    VITE_API_URL          Backend URL
+    VITE_GOOGLE_CLIENT_ID Google OAuth client ID
+
+================================================================================
+12. SECURITY FEATURES
+================================================================================
+  - JWT access tokens + refresh token rotation
+  - HttpOnly cookies (fallback) + localStorage
+  - Helmet.js (HTTP security headers)
+  - CORS restricted to CLIENT_URL only
+  - Rate limiting: 1000 req/15min general, 20 req/15min for auth routes
+  - bcryptjs password hashing (12 rounds)
+  - isActive check blocks deactivated users at middleware level
+  - Role-based route guards on both frontend and backend
+
+================================================================================
+13. REALTIME FEATURES (Socket.IO)
+================================================================================
+  - Video consultation WebRTC signaling (join-room, offer, answer, ICE)
+  - Developer Dashboard: live API request log stream (api-log event)
+  - Emergency SOS geolocation broadcast
+
+================================================================================
+14. THIRD-PARTY INTEGRATIONS
+================================================================================
+  - Google OAuth 2.0    → Social login (patients & doctors)
+  - Razorpay            → Payment gateway for appointment fees
+  - Google Gemini AI    → Symptom checker / AI health assistant
+  - Recharts            → Analytics dashboard charts
+  - Framer Motion       → UI animations
+  - react-hot-toast     → Toast notifications
+  - Lucide React        → Icon library
+  - jsPDF / pdf-lib     → PDF report generation
+
+================================================================================
+END OF OVERVIEW
+================================================================================
