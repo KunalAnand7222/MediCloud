@@ -1041,7 +1041,7 @@ var DeveloperDashboard = () => {
 
   useEffect(() => {
     // Connect to WebSockets
-    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+    const socket = io(import.meta.env.VITE_API_URL || 'https://medicloud-production.up.railway.app', {
       withCredentials: true
     });
 
@@ -4308,7 +4308,7 @@ export function VideoConsultation() {
   useEffect(() => {
     if (!stream) return; // wait until local stream is ready
 
-    const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:5000';
+    const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'https://medicloud-production.up.railway.app';
     const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
     socketRef.current = socket;
 

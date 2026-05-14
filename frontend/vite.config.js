@@ -10,32 +10,18 @@ export default defineConfig({
     },
   },
 
+  // Keep this only for LOCAL development
   server: {
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/socket.io': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        ws: true,
-      },
-      '/uploads': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      },
-    },
   },
 
-  // ✅ ADD THIS FOR PRODUCTION
- preview: {
-  host: "0.0.0.0",
-  port: 8080,
-  allowedHosts: [
-    "empathetic-strength-production-beab.up.railway.app"
-  ]
-}
+  // This is REQUIRED for Railway (production)
+  preview: {
+    host: "0.0.0.0",
+    port: 8080,
+    allowedHosts: [
+      "empathetic-strength-production-beab.up.railway.app",
+      "medicloud-production.up.railway.app"
+    ]
+  }
 })
