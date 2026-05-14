@@ -31,9 +31,11 @@ export default defineConfig({
   },
 
   // ✅ ADD THIS FOR PRODUCTION
-  preview: {
+ preview: {
   host: "0.0.0.0",
   port: 8080,
-  allowedHosts: "all"
+  allowedHosts: [
+    "empathetic-strength-production-beab.up.railway.app"
+  ]
 }
 })
