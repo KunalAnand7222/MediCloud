@@ -57,7 +57,7 @@ export function LoginPage() {
       }
     };
     document.head.appendChild(script);
-    return () => { try { document.head.removeChild(script); } catch {} };
+    return () => { try { document.head.removeChild(script); } catch { } };
   }, []);
   const handleGoogleResponse = async (response) => {
     if (response.credential) {
@@ -188,7 +188,7 @@ export function RegisterPage() {
       }
     };
     document.head.appendChild(script);
-    return () => { try { document.head.removeChild(script); } catch {} };
+    return () => { try { document.head.removeChild(script); } catch { } };
   }, []);
 
   const handleGoogleResponse = async (response) => {
@@ -244,11 +244,10 @@ export function RegisterPage() {
             <div className="grid grid-cols-2 gap-2 mb-2">
               {['patient', 'doctor'].map(role => (
                 <button type="button" key={role} onClick={() => setForm(p => ({ ...p, role }))}
-                  className={`py-2.5 rounded-xl text-sm font-medium capitalize transition-all border ${
-                    form.role === role
-                      ? 'bg-medical-500/20 border-medical-500/50 text-medical-600 dark:text-medical-300'
-                      : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}>
+                  className={`py-2.5 rounded-xl text-sm font-medium capitalize transition-all border ${form.role === role
+                    ? 'bg-medical-500/20 border-medical-500/50 text-medical-600 dark:text-medical-300'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}>
                   {role === 'doctor' ? '👨‍⚕️ Doctor' : '🏥 Patient'}
                 </button>
               ))}
@@ -453,9 +452,8 @@ export function ForgotPasswordPage() {
         <div className="flex items-center justify-center gap-2 mb-6">
           {stepLabels.map((label, i) => (
             <div key={label} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                step > i + 1 ? 'bg-emerald-500 text-white' : step === i + 1 ? 'bg-medical-500 text-white shadow-lg shadow-medical-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
-              }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step > i + 1 ? 'bg-emerald-500 text-white' : step === i + 1 ? 'bg-medical-500 text-white shadow-lg shadow-medical-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+                }`}>
                 {step > i + 1 ? <CheckCircle className="w-4 h-4" /> : i + 1}
               </div>
               {i < 2 && <div className={`w-8 h-0.5 ${step > i + 1 ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`} />}
@@ -771,7 +769,7 @@ export function DoctorDashboard() {
                       <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{appt.patient?.name}</p>
                       <p className="text-slate-500 dark:text-slate-400 text-xs">{formatDate(appt.date)} · {appt.timeSlot}</p>
                       {appt.problemImage && (
-                        <a href={appt.problemImage} target="_blank" rel="noopener noreferrer" 
+                        <a href={appt.problemImage} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[10px] text-medical-500 hover:text-medical-600 mt-1 bg-medical-500/10 px-1.5 py-0.5 rounded">
                           <ImageIcon className="w-3 h-3" /> Image attached
                         </a>
@@ -1009,14 +1007,14 @@ export function AnalyticsDashboard() {
                 <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                     itemStyle={{ color: '#2dd4bf' }}
                   />
@@ -1039,114 +1037,113 @@ var DeveloperDashboard = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [activeTab, setActiveTab] = useState('api');
 
-  useEffect(() => {
-    // Connect to WebSockets
-    const socket = io(import.meta.env.VITE_API_URL || 'https://medicloud-production.up.railway.app', {
-      withCredentials: true
-    });
+  const SOCKET_URL = import.meta.env.VITE_API_URL.replace('/api/v1', '');
+  const socket = io(SOCKET_URL, {
+    withCredentials: true
+  });
 
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
-    
-    socket.on('api-log', (log) => {
-      setLogs(prev => [log, ...prev].slice(0, 100)); // Keep last 100
-    });
+  socket.on('connect', () => setIsConnected(true));
+  socket.on('disconnect', () => setIsConnected(false));
 
-    return () => socket.disconnect();
-  }, []);
+  socket.on('api-log', (log) => {
+    setLogs(prev => [log, ...prev].slice(0, 100)); // Keep last 100
+  });
 
-  useEffect(() => {
-    if (activeTab === 'telemetry') {
-      const fetchTelemetry = async () => {
-        try {
-          const res = await api.get('/telemetry');
-          setTelemetry(res.data.data);
-        } catch (err) {
-          console.error("Error fetching telemetry:", err);
-        }
-      };
-      fetchTelemetry();
-      const interval = setInterval(fetchTelemetry, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [activeTab]);
+  return () => socket.disconnect();
+};
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-8">
-      <div className="max-w-7xl mx-auto border border-gray-700 rounded-xl overflow-hidden shadow-2xl bg-gray-800">
-        <div className="bg-gray-950 p-6 flex justify-between items-center border-b border-gray-700">
-          <div>
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
-              Developer Dashboard
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm">Real-time trace for Serverless Node & Blockchain Edge Integrations</p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <span className="text-sm font-medium">Socket Connection:</span>
-            <span className={`h-3 w-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-            <span className="text-xs uppercase tracking-wider">{isConnected ? 'Live' : 'Disconnected'}</span>
-          </div>
+useEffect(() => {
+  if (activeTab === 'telemetry') {
+    const fetchTelemetry = async () => {
+      try {
+        const res = await api.get('/telemetry');
+        setTelemetry(res.data.data);
+      } catch (err) {
+        console.error("Error fetching telemetry:", err);
+      }
+    };
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 5000);
+    return () => clearInterval(interval);
+  }
+}, [activeTab]);
+
+return (
+  <div className="min-h-screen bg-gray-900 text-gray-100 p-8">
+    <div className="max-w-7xl mx-auto border border-gray-700 rounded-xl overflow-hidden shadow-2xl bg-gray-800">
+      <div className="bg-gray-950 p-6 flex justify-between items-center border-b border-gray-700">
+        <div>
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
+            Developer Dashboard
+          </h1>
+          <p className="text-gray-400 mt-2 text-sm">Real-time trace for Serverless Node & Blockchain Edge Integrations</p>
         </div>
-
-        <div className="flex border-b border-gray-700">
-          <button 
-            className={`px-6 py-4 font-semibold text-sm ${activeTab === 'api' ? 'border-b-2 border-blue-400 text-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
-            onClick={() => setActiveTab('api')}
-          >
-            Real-Time API Triggers
-          </button>
-          <button 
-            className={`px-6 py-4 font-semibold text-sm ${activeTab === 'telemetry' ? 'border-b-2 border-blue-400 text-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
-            onClick={() => setActiveTab('telemetry')}
-          >
-            IoMT Sync & Integrity
-          </button>
-        </div>
-
-        <div className="p-6 h-[600px] overflow-y-auto font-mono text-sm">
-          {activeTab === 'api' ? (
-            <div className="space-y-2">
-              {logs.map((log, i) => (
-                <div key={i} className="flex space-x-4 bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">
-                  <span className="text-gray-500 w-48 shrink-0">{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, fractionalSecondDigits: 3 })}</span>
-                  <span className={`w-16 font-bold ${log.method === 'GET' ? 'text-blue-400' : log.method === 'POST' ? 'text-green-400' : 'text-yellow-400'}`}>{log.method}</span>
-                  <span className="text-gray-300 flex-1">{log.url}</span>
-                  <span className="text-gray-600">{log.ip}</span>
-                </div>
-              ))}
-              {logs.length === 0 && <div className="text-gray-500 text-center mt-10">Listening for serverless API invocations...</div>}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-6 gap-4 text-xs tracking-wider text-gray-500 uppercase pb-2 border-b border-gray-700">
-                <span className="col-span-1">Timestamp</span>
-                <span className="col-span-1">Device ID</span>
-                <span className="col-span-2">Data Hash (Blockchain)</span>
-                <span className="col-span-1">Status</span>
-                <span className="col-span-1">Integrity</span>
-              </div>
-              {telemetry.map((t, i) => (
-                <div key={t._id || i} className="grid grid-cols-6 gap-4 text-gray-300 items-center bg-gray-900 p-3 rounded-lg border border-gray-800">
-                  <span className="col-span-1 text-xs">{new Date(t.timestamp).toLocaleTimeString()}</span>
-                  <span className="col-span-1 font-bold text-teal-400">{t.deviceId}</span>
-                  <span className="col-span-2 text-xs text-gray-500 truncate" title={t.dataHash}>{t.dataHash}</span>
-                  <span className="col-span-1">
-                    <span className="px-2 py-1 text-xs rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">{t.syncStatus}</span>
-                  </span>
-                  <span className="col-span-1 flex items-center">
-                    {t.integrityValid ? 
-                      <span className="text-green-400 flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg> Verified</span> : 
-                      <span className="text-red-400 flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg> Tampered</span>}
-                  </span>
-                </div>
-              ))}
-              {telemetry.length === 0 && <div className="text-gray-500 text-center mt-10">No IoMT synchronized logs found. Data will stream here from Edge nodes.</div>}
-            </div>
-          )}
+        <div className="flex items-center space-x-3">
+          <span className="text-sm font-medium">Socket Connection:</span>
+          <span className={`h-3 w-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
+          <span className="text-xs uppercase tracking-wider">{isConnected ? 'Live' : 'Disconnected'}</span>
         </div>
       </div>
+
+      <div className="flex border-b border-gray-700">
+        <button
+          className={`px-6 py-4 font-semibold text-sm ${activeTab === 'api' ? 'border-b-2 border-blue-400 text-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
+          onClick={() => setActiveTab('api')}
+        >
+          Real-Time API Triggers
+        </button>
+        <button
+          className={`px-6 py-4 font-semibold text-sm ${activeTab === 'telemetry' ? 'border-b-2 border-blue-400 text-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
+          onClick={() => setActiveTab('telemetry')}
+        >
+          IoMT Sync & Integrity
+        </button>
+      </div>
+
+      <div className="p-6 h-[600px] overflow-y-auto font-mono text-sm">
+        {activeTab === 'api' ? (
+          <div className="space-y-2">
+            {logs.map((log, i) => (
+              <div key={i} className="flex space-x-4 bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">
+                <span className="text-gray-500 w-48 shrink-0">{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, fractionalSecondDigits: 3 })}</span>
+                <span className={`w-16 font-bold ${log.method === 'GET' ? 'text-blue-400' : log.method === 'POST' ? 'text-green-400' : 'text-yellow-400'}`}>{log.method}</span>
+                <span className="text-gray-300 flex-1">{log.url}</span>
+                <span className="text-gray-600">{log.ip}</span>
+              </div>
+            ))}
+            {logs.length === 0 && <div className="text-gray-500 text-center mt-10">Listening for serverless API invocations...</div>}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-6 gap-4 text-xs tracking-wider text-gray-500 uppercase pb-2 border-b border-gray-700">
+              <span className="col-span-1">Timestamp</span>
+              <span className="col-span-1">Device ID</span>
+              <span className="col-span-2">Data Hash (Blockchain)</span>
+              <span className="col-span-1">Status</span>
+              <span className="col-span-1">Integrity</span>
+            </div>
+            {telemetry.map((t, i) => (
+              <div key={t._id || i} className="grid grid-cols-6 gap-4 text-gray-300 items-center bg-gray-900 p-3 rounded-lg border border-gray-800">
+                <span className="col-span-1 text-xs">{new Date(t.timestamp).toLocaleTimeString()}</span>
+                <span className="col-span-1 font-bold text-teal-400">{t.deviceId}</span>
+                <span className="col-span-2 text-xs text-gray-500 truncate" title={t.dataHash}>{t.dataHash}</span>
+                <span className="col-span-1">
+                  <span className="px-2 py-1 text-xs rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">{t.syncStatus}</span>
+                </span>
+                <span className="col-span-1 flex items-center">
+                  {t.integrityValid ?
+                    <span className="text-green-400 flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg> Verified</span> :
+                    <span className="text-red-400 flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg> Tampered</span>}
+                </span>
+              </div>
+            ))}
+            {telemetry.length === 0 && <div className="text-gray-500 text-center mt-10">No IoMT synchronized logs found. Data will stream here from Edge nodes.</div>}
+          </div>
+        )}
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export { DeveloperDashboard };
@@ -1293,89 +1290,88 @@ export function HospitalsPage() {
                     {/* Type badge */}
                     {hospital.type && (
                       <div className="absolute top-3 right-3">
-                        <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${
-                          hospital.type === 'government' 
-                            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20' 
-                            : hospital.type === 'teaching' 
-                            ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20' 
-                            : hospital.type === 'specialty' 
-                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20' 
-                            : 'bg-emerald-500/15 text-emerald-600 dark:text-green-400 border border-emerald-500/20'
-                        }`}>
+                        <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${hospital.type === 'government'
+                          ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                          : hospital.type === 'teaching'
+                            ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                            : hospital.type === 'specialty'
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                              : 'bg-emerald-500/15 text-emerald-600 dark:text-green-400 border border-emerald-500/20'
+                          }`}>
                           {hospital.type}
                         </span>
                       </div>
                     )}
                   </div>
 
-                <div className="p-5 pt-3 flex-1 flex flex-col">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-medical-500 transition-colors">{hospital.name}</h3>
-                  
-                  <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-3">
-                    <MapPin className="w-3.5 h-3.5 text-medical-500" />
-                    {hospital.address?.city}{hospital.address?.state ? `, ${hospital.address.state}` : ''}
-                  </div>
+                  <div className="p-5 pt-3 flex-1 flex flex-col">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-medical-500 transition-colors">{hospital.name}</h3>
 
-                  {/* Rating */}
-                  <div className="flex items-center gap-1 mb-3">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} className={`w-3.5 h-3.5 ${j < Math.round(hospital.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}`} />
-                    ))}
-                    <span className="text-slate-500 dark:text-slate-400 text-xs ml-1">{hospital.rating?.toFixed(1)} ({hospital.totalReviews?.toLocaleString()} reviews)</span>
-                  </div>
-
-                  {/* Key info */}
-                  <div className="space-y-1.5 mb-4">
-                    {hospital.totalBeds > 0 && (
-                      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
-                        <Bed className="w-3.5 h-3.5 text-medical-500" />
-                        {hospital.availableBeds}/{hospital.totalBeds} {t('beds_available')}
-                      </div>
-                    )}
-                    {hospital.totalDoctors > 0 && (
-                      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
-                        <Users className="w-3.5 h-3.5 text-medical-500" />
-                        {hospital.totalDoctors} {t('doctors')}
-                      </div>
-                    )}
-                    {hospital.operatingHours?.emergencyAvailable && (
-                      <div className="flex items-center gap-2 text-emerald-500 text-xs">
-                        <Clock className="w-3.5 h-3.5" />
-                        {t('emergency_available')}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Services tags */}
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {hospital.services?.slice(0, 4).map(s => (
-                      <span key={s} className="text-xs px-2 py-0.5 bg-medical-500/10 text-medical-500 rounded-full border border-medical-500/20">{s}</span>
-                    ))}
-                    {hospital.services?.length > 4 && (
-                      <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-full">+{hospital.services.length - 4} {t('more')}</span>
-                    )}
-                  </div>
-
-                  {/* Accreditation */}
-                  {hospital.accreditation?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {hospital.accreditation.map(a => (
-                        <span key={a} className="text-xs px-1.5 py-0.5 bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded border border-amber-200 dark:border-amber-500/20 font-medium">{a}</span>
-                      ))}
+                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-3">
+                      <MapPin className="w-3.5 h-3.5 text-medical-500" />
+                      {hospital.address?.city}{hospital.address?.state ? `, ${hospital.address.state}` : ''}
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between pt-3 mt-auto border-t border-slate-100 dark:border-slate-700">
-                    {hospital.phone && (
-                      <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
-                        <Phone className="w-3 h-3" /> {hospital.phone}
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 mb-3">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className={`w-3.5 h-3.5 ${j < Math.round(hospital.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}`} />
+                      ))}
+                      <span className="text-slate-500 dark:text-slate-400 text-xs ml-1">{hospital.rating?.toFixed(1)} ({hospital.totalReviews?.toLocaleString()} reviews)</span>
+                    </div>
+
+                    {/* Key info */}
+                    <div className="space-y-1.5 mb-4">
+                      {hospital.totalBeds > 0 && (
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                          <Bed className="w-3.5 h-3.5 text-medical-500" />
+                          {hospital.availableBeds}/{hospital.totalBeds} {t('beds_available')}
+                        </div>
+                      )}
+                      {hospital.totalDoctors > 0 && (
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                          <Users className="w-3.5 h-3.5 text-medical-500" />
+                          {hospital.totalDoctors} {t('doctors')}
+                        </div>
+                      )}
+                      {hospital.operatingHours?.emergencyAvailable && (
+                        <div className="flex items-center gap-2 text-emerald-500 text-xs">
+                          <Clock className="w-3.5 h-3.5" />
+                          {t('emergency_available')}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Services tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {hospital.services?.slice(0, 4).map(s => (
+                        <span key={s} className="text-xs px-2 py-0.5 bg-medical-500/10 text-medical-500 rounded-full border border-medical-500/20">{s}</span>
+                      ))}
+                      {hospital.services?.length > 4 && (
+                        <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 rounded-full">+{hospital.services.length - 4} {t('more')}</span>
+                      )}
+                    </div>
+
+                    {/* Accreditation */}
+                    {hospital.accreditation?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {hospital.accreditation.map(a => (
+                          <span key={a} className="text-xs px-1.5 py-0.5 bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded border border-amber-200 dark:border-amber-500/20 font-medium">{a}</span>
+                        ))}
                       </div>
                     )}
-                    <span className="text-medical-500 dark:text-teal-400 text-sm font-bold flex items-center gap-1 ml-auto">
-                      {t('view_details')} <ChevronRight className="w-3 h-3" />
-                    </span>
+
+                    <div className="flex items-center justify-between pt-3 mt-auto border-t border-slate-100 dark:border-slate-700">
+                      {hospital.phone && (
+                        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+                          <Phone className="w-3 h-3" /> {hospital.phone}
+                        </div>
+                      )}
+                      <span className="text-medical-500 dark:text-teal-400 text-sm font-bold flex items-center gap-1 ml-auto">
+                        {t('view_details')} <ChevronRight className="w-3 h-3" />
+                      </span>
+                    </div>
                   </div>
-                </div>
                 </div>
               </Link>
             ))}
@@ -1446,15 +1442,14 @@ export function HospitalDetailPage() {
             </div>
             {hospital.type && (
               <div className="absolute top-4 right-6">
-                <span className={`text-sm px-3 py-1 rounded-full font-bold uppercase tracking-wider ${
-                  hospital.type === 'government' 
-                    ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20' 
-                    : hospital.type === 'teaching' 
-                    ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20' 
-                    : hospital.type === 'specialty' 
-                    ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20' 
-                    : 'bg-emerald-500/15 text-emerald-600 dark:text-green-400 border border-emerald-500/20'
-                }`}>
+                <span className={`text-sm px-3 py-1 rounded-full font-bold uppercase tracking-wider ${hospital.type === 'government'
+                  ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                  : hospital.type === 'teaching'
+                    ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                    : hospital.type === 'specialty'
+                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                      : 'bg-emerald-500/15 text-emerald-600 dark:text-green-400 border border-emerald-500/20'
+                  }`}>
                   {hospital.type} Hospital
                 </span>
               </div>
@@ -1944,7 +1939,7 @@ export function AddHospitalPage() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${services.includes(svc)
                     ? 'bg-medical-500/20 text-medical-400 border-medical-500/30'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
-                  }`}>
+                    }`}>
                   {svc}
                 </button>
               ))}
@@ -1981,7 +1976,7 @@ export function AddHospitalPage() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${departments.includes(dept)
                     ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
-                  }`}>
+                    }`}>
                   {dept}
                 </button>
               ))}
@@ -2039,7 +2034,7 @@ export function AddHospitalPage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${openDays.includes(day)
                       ? 'bg-sky-500/20 text-sky-400 border-sky-500/30'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}>
+                      }`}>
                     {day.slice(0, 3)}
                   </button>
                 ))}
@@ -2320,7 +2315,7 @@ export function LandingPage() {
               Browse Hospitals <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          
+
           <div className="glass-card p-10 border border-slate-200 dark:border-slate-700 hover:border-medical-500/30 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-medical-500 to-teal-500 flex items-center justify-center mb-6 shadow-lg">
               <Sparkles className="w-8 h-8 text-white" />
@@ -2511,7 +2506,7 @@ export function AppointmentsPage() {
                               <span className="text-xs font-bold">Join</span>
                             </Link>
                           )}
-                          
+
                           {/* Cancel Button (Patient & Doctor) */}
                           {['pending', 'confirmed'].includes(appt.status) && (
                             <button onClick={() => handleCancel(appt._id)} className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-all" title="Cancel Appointment">
@@ -2836,9 +2831,9 @@ export function PatientsPage() {
           </div>
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search patients..." 
+            <input
+              type="text"
+              placeholder="Search patients..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field pl-10 w-full"
@@ -2914,17 +2909,17 @@ export function ProfilePage() {
       api.get('/doctors/me').then(res => {
         const d = res.data.doctor || res.data;
         setDoctorForm({ specialization: d.specialization || '', experience: d.experience || '', consultationFee: d.consultationFee || '', bio: d.bio || '', availableDays: (d.availableDays || []).join(', '), hospital: d.hospital?._id || d.hospital || '', customHospital: d.customHospital || '' });
-      }).catch(() => {});
-      api.get('/hospitals').then(res => setHospitals(res.data.hospitals || [])).catch(() => {});
+      }).catch(() => { });
+      api.get('/hospitals').then(res => setHospitals(res.data.hospitals || [])).catch(() => { });
     }
     if (user?.role === 'patient') {
       api.get('/patients/me').then(res => {
         const p = res.data.patient || res.data;
         setPatientForm({ bloodGroup: p.bloodGroup || '', allergies: (p.allergies || []).join(', '), emergencyContact: p.emergencyContact || '', address: p.address || '' });
-      }).catch(() => {});
+      }).catch(() => { });
     }
     if (user?.role) {
-      api.get(`/dashboard/${user.role}`).then(res => setStats(res.data)).catch(() => {});
+      api.get(`/dashboard/${user.role}`).then(res => setStats(res.data)).catch(() => { });
     }
   }, [user]);
 
@@ -2933,7 +2928,7 @@ export function ProfilePage() {
     try {
       let profileData = form;
       let headers = {};
-      
+
       if (avatarFile) {
         const formData = new FormData();
         formData.append('name', form.name);
@@ -3151,7 +3146,7 @@ export function ProfilePage() {
                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Blood Group</label>
                 <select value={patientForm.bloodGroup} onChange={e => setPatientForm(p => ({ ...p, bloodGroup: e.target.value }))} className="input-field">
                   <option value="">Select</option>
-                  {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
                 </select>
               </div>
               <div>
@@ -3179,7 +3174,7 @@ export function ProfilePage() {
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><Shield className="w-5 h-5 text-amber-500" />Password & Security</h3>
             {isGoogleUser ? (
               <div className="bg-blue-50/50 dark:bg-blue-500/10 p-4 rounded-xl border border-blue-200 dark:border-blue-500/20 flex items-start gap-3">
-                <svg className="w-6 h-6 text-blue-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <svg className="w-6 h-6 text-blue-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
                 <div>
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Signed in with Google</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Password changes are managed through your Google account settings. You cannot set a separate password here.</p>
@@ -3544,17 +3539,17 @@ export function UsersManagementPage() {
                   const num = start + i;
                   if (num > totalPages) return null;
                   return (
-                      <button key={num} onClick={() => setPage(num)}
-                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${num === page ? 'bg-medical-500 text-white shadow-md shadow-medical-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600'}`}>
-                        {num}
-                      </button>
-                    );
-                  })}
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
+                    <button key={num} onClick={() => setPage(num)}
+                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${num === page ? 'bg-medical-500 text-white shadow-md shadow-medical-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600'}`}>
+                      {num}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -3661,9 +3656,9 @@ export function DoctorsPage() {
         <div className="glass-card p-4 flex flex-col sm:flex-row gap-4 border border-slate-200 dark:border-slate-700 shadow-sm">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search by name or specialization..." 
+            <input
+              type="text"
+              placeholder="Search by name or specialization..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field pl-10"
@@ -3671,7 +3666,7 @@ export function DoctorsPage() {
           </div>
           <div className="relative w-full sm:w-64">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <select 
+            <select
               value={specialization}
               onChange={(e) => setSpecialization(e.target.value)}
               className="input-field pl-10 appearance-none cursor-pointer"
@@ -3734,14 +3729,13 @@ export function DoctorsPage() {
                     <Link to={`/appointments/book?doctorId=${doctor.user?._id}`} className="flex-1 btn-primary text-xs py-2 text-center rounded-lg font-semibold shadow-md shadow-medical-900/10">Book Now</Link>
                   )}
                   {user?.role === 'admin' && (
-                    <button 
+                    <button
                       onClick={() => handleToggleStatus(doctor)}
                       disabled={toggling === doctor._id}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
-                        doctor.user?.isActive 
-                          ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10' 
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${doctor.user?.isActive
+                        ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+                        }`}
                       title={doctor.user?.isActive ? 'Deactivate Doctor' : 'Activate Doctor'}
                     >
                       <div className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${doctor.user?.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
@@ -3913,15 +3907,15 @@ export function BookAppointment() {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Dr. {doctor.user?.name}</h3>
                 <p className="text-medical-600 dark:text-medical-400 font-medium">{doctor.specialization}</p>
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 space-y-3 text-left">
-                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
-                     <Building2 className="w-4 h-4 text-slate-400" /> {doctor.hospital?.name || doctor.customHospital || 'MediCloud Hospital'}
-                   </div>
-                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
-                     <Star className="w-4 h-4 text-amber-400" /> {doctor.rating || '4.8'} Rating
-                   </div>
-                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
-                     <Banknote className="w-4 h-4 text-slate-400" /> ₹{doctor.consultationFee || '500'} Fee
-                   </div>
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
+                    <Building2 className="w-4 h-4 text-slate-400" /> {doctor.hospital?.name || doctor.customHospital || 'MediCloud Hospital'}
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
+                    <Star className="w-4 h-4 text-amber-400" /> {doctor.rating || '4.8'} Rating
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
+                    <Banknote className="w-4 h-4 text-slate-400" /> ₹{doctor.consultationFee || '500'} Fee
+                  </div>
                 </div>
               </div>
             ) : (
@@ -3953,11 +3947,11 @@ export function BookAppointment() {
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Preferred Date</label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       min={new Date().toISOString().split('T')[0]}
                       value={form.date}
-                      onChange={(e) => setForm({...form, date: e.target.value})}
+                      onChange={(e) => setForm({ ...form, date: e.target.value })}
                       className="input-field pl-10 w-full"
                       required
                     />
@@ -3970,7 +3964,7 @@ export function BookAppointment() {
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setForm({...form, type})}
+                        onClick={() => setForm({ ...form, type })}
                         className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 ${form.type === type ? 'bg-medical-500 text-white border-medical-500 shadow-md shadow-medical-900/20' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                       >
                         {type === 'video' ? <Video className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
@@ -3991,14 +3985,13 @@ export function BookAppointment() {
                         key={slot}
                         type="button"
                         disabled={isBooked}
-                        onClick={() => setForm({...form, timeSlot: slot})}
-                        className={`py-2 rounded-lg text-xs font-medium border transition-all ${
-                          isBooked 
-                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed dark:bg-slate-800/50 dark:border-slate-800 dark:text-slate-600' 
-                            : form.timeSlot === slot 
-                              ? 'bg-medical-500 text-white border-medical-500 shadow-md' 
-                              : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-medical-500/50'
-                        }`}
+                        onClick={() => setForm({ ...form, timeSlot: slot })}
+                        className={`py-2 rounded-lg text-xs font-medium border transition-all ${isBooked
+                          ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed dark:bg-slate-800/50 dark:border-slate-800 dark:text-slate-600'
+                          : form.timeSlot === slot
+                            ? 'bg-medical-500 text-white border-medical-500 shadow-md'
+                            : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-medical-500/50'
+                          }`}
                       >
                         {slot}
                       </button>
@@ -4009,10 +4002,10 @@ export function BookAppointment() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Reason for visit</label>
-                <textarea 
-                  placeholder="Tell us about your health concern..." 
+                <textarea
+                  placeholder="Tell us about your health concern..."
                   value={form.reason}
-                  onChange={(e) => setForm({...form, reason: e.target.value})}
+                  onChange={(e) => setForm({ ...form, reason: e.target.value })}
                   className="input-field min-h-[100px] py-3"
                 />
               </div>
@@ -4099,8 +4092,8 @@ export function BookAppointment() {
                 )}
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={submitting || !doctor}
                 className="w-full btn-primary py-3 rounded-xl font-bold text-lg shadow-xl shadow-medical-900/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] disabled:opacity-50"
               >
@@ -4175,7 +4168,7 @@ export function PrescriptionsPage() {
                   ))}
                   {p.medicines?.length > 3 && <p className="text-xs text-medical-500 font-medium">+{p.medicines.length - 3} more medicines</p>}
                 </div>
-                <button 
+                <button
                   onClick={() => generateReport?.prescription(p)}
                   className="w-full btn-secondary py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-medical-500 hover:text-white transition-all"
                 >
@@ -4209,9 +4202,9 @@ export function MedicalRecordsPage() {
             <p className="text-slate-600 dark:text-slate-400 mt-1">Your comprehensive medical history and clinical timeline.</p>
           </div>
         </div>
-        
+
         <div className="glass-card p-6 border border-slate-200 dark:border-slate-700 shadow-xl">
-           <TimelineEHR patientId={user?._id} />
+          <TimelineEHR patientId={user?._id} />
         </div>
       </div>
     </DashboardLayout>
@@ -4223,11 +4216,11 @@ export function VideoConsultation() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [timer, setTimer] = useState(0);
-  
+
   // New State
   const [stream, setStream] = useState(null);
   const [remoteJoined, setRemoteJoined] = useState(false);
@@ -4243,7 +4236,7 @@ export function VideoConsultation() {
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef(null);
   const dragOffset = useRef({ x: 0, y: 0 });
-  
+
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -4260,7 +4253,7 @@ export function VideoConsultation() {
       api.get(`/appointments`).then(res => {
         const appt = (res.data.appointments || []).find(a => a._id === roomId || a.roomId === roomId);
         if (appt) setAppointmentData(appt);
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [roomId, user]);
 
@@ -4308,14 +4301,16 @@ export function VideoConsultation() {
   useEffect(() => {
     if (!stream) return; // wait until local stream is ready
 
-    const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'https://medicloud-production.up.railway.app';
-    const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+    const SOCKET_URL = import.meta.env.VITE_API_URL.replace('/api/v1', '');
+    const socket = io(SOCKET_URL, { withCredentials: true });
     socketRef.current = socket;
 
-    const ICE_SERVERS = { iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-    ]};
+    const ICE_SERVERS = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ]
+    };
 
     let remoteSocketId = null;
 
@@ -4441,7 +4436,7 @@ export function VideoConsultation() {
     if (remoteJoined) {
       // Stop ringing when someone joins
       clearInterval(ringIntervalRef.current);
-      if (oscRef.current) { try { oscRef.current.stop(); } catch(e){} }
+      if (oscRef.current) { try { oscRef.current.stop(); } catch (e) { } }
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') { audioCtxRef.current.close(); }
       return;
     }
@@ -4457,16 +4452,16 @@ export function VideoConsultation() {
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
-      
+
       osc.type = 'sine';
       osc.frequency.setValueAtTime(440, ctx.currentTime);
       osc.frequency.setValueAtTime(480, ctx.currentTime + 0.1);
-      
+
       gain.gain.setValueAtTime(0, ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.08, ctx.currentTime + 1.4);
       gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
-      
+
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 1.5);
       oscRef.current = osc;
@@ -4477,7 +4472,7 @@ export function VideoConsultation() {
 
     return () => {
       clearInterval(ringIntervalRef.current);
-      if (oscRef.current) { try { oscRef.current.stop(); } catch(e){} }
+      if (oscRef.current) { try { oscRef.current.stop(); } catch (e) { } }
       if (ctx.state !== 'closed') ctx.close();
     };
   }, [remoteJoined]);
@@ -4551,7 +4546,7 @@ export function VideoConsultation() {
       <div className="flex-1 relative p-4 flex flex-col md:flex-row gap-4 h-[calc(100vh-96px)]">
         {/* Main Video Stream container */}
         <div className={`flex-1 relative bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center transition-all ${showChat || showSettings ? 'md:mr-80' : ''}`}>
-          
+
           <div className="absolute top-4 left-4 z-10">
             <span className="badge badge-info bg-medical-500/20 text-medical-400 border-medical-500/30 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-medical-500 animate-pulse" />
@@ -4578,12 +4573,12 @@ export function VideoConsultation() {
             <>
               {!remoteJoined ? (
                 <div className="text-center space-y-4">
-                   <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center mx-auto border-2 border-slate-700 relative">
-                      <User className="w-12 h-12 text-slate-600" />
-                      <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-amber-500 animate-ping" />
-                   </div>
-                   <p className="text-slate-400 font-medium animate-pulse">Waiting for {user?.role === 'doctor' ? 'patient' : 'doctor'}...</p>
-                   <p className="text-slate-600 text-sm">Ringing...</p>
+                  <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center mx-auto border-2 border-slate-700 relative">
+                    <User className="w-12 h-12 text-slate-600" />
+                    <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-amber-500 animate-ping" />
+                  </div>
+                  <p className="text-slate-400 font-medium animate-pulse">Waiting for {user?.role === 'doctor' ? 'patient' : 'doctor'}...</p>
+                  <p className="text-slate-600 text-sm">Ringing...</p>
                 </div>
               ) : (
                 <div className="w-full h-full bg-slate-800 flex items-center justify-center relative">
@@ -4612,51 +4607,51 @@ export function VideoConsultation() {
             className="absolute w-40 h-56 sm:w-48 sm:h-64 bg-slate-900 rounded-2xl overflow-hidden border-2 border-slate-600 shadow-2xl flex items-center justify-center z-20 cursor-grab active:cursor-grabbing select-none hover:border-medical-500/50 transition-[border]"
             style={pipPos.x || pipPos.y ? { left: pipPos.x, top: pipPos.y } : { bottom: 24, right: 24, position: 'absolute' }}
           >
-             {isSwapped ? (
-               /* PIP shows remote when swapped */
-               <>
-                 {!remoteJoined ? (
-                   <div className="flex flex-col items-center justify-center gap-2">
-                     <User className="w-10 h-10 text-slate-600" />
-                     <p className="text-slate-500 text-[10px]">Waiting...</p>
-                   </div>
-                 ) : remoteStream ? (
-                   <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                 ) : (
-                   <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                     <User className="w-12 h-12 text-slate-500" />
-                   </div>
-                 )}
-                 <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-medium">
-                   {remoteUserName || (user?.role === 'doctor' ? 'Patient' : 'Doctor')}
-                 </div>
-               </>
-             ) : (
-               /* PIP shows local when not swapped */
-               <>
-                 <video ref={localVideoRef} autoPlay playsInline muted
-                   className={`w-full h-full object-cover ${isCameraOff ? 'hidden' : 'block'}`} />
-                 {isCameraOff && (
-                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800">
-                     <VideoOff className="w-6 h-6 text-slate-400" />
-                     <p className="text-slate-400 text-[10px] mt-1">Camera Off</p>
-                   </div>
-                 )}
-                 <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-medium">
-                   You
-                 </div>
-               </>
-             )}
-             <div className="absolute top-1.5 right-1.5 z-10 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
-               <ArrowRight className="w-3 h-3 text-white rotate-45" />
-             </div>
+            {isSwapped ? (
+              /* PIP shows remote when swapped */
+              <>
+                {!remoteJoined ? (
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <User className="w-10 h-10 text-slate-600" />
+                    <p className="text-slate-500 text-[10px]">Waiting...</p>
+                  </div>
+                ) : remoteStream ? (
+                  <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+                    <User className="w-12 h-12 text-slate-500" />
+                  </div>
+                )}
+                <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-medium">
+                  {remoteUserName || (user?.role === 'doctor' ? 'Patient' : 'Doctor')}
+                </div>
+              </>
+            ) : (
+              /* PIP shows local when not swapped */
+              <>
+                <video ref={localVideoRef} autoPlay playsInline muted
+                  className={`w-full h-full object-cover ${isCameraOff ? 'hidden' : 'block'}`} />
+                {isCameraOff && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800">
+                    <VideoOff className="w-6 h-6 text-slate-400" />
+                    <p className="text-slate-400 text-[10px] mt-1">Camera Off</p>
+                  </div>
+                )}
+                <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-medium">
+                  You
+                </div>
+              </>
+            )}
+            <div className="absolute top-1.5 right-1.5 z-10 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
+              <ArrowRight className="w-3 h-3 text-white rotate-45" />
+            </div>
           </div>
         </div>
 
         {/* Sidebars (Chat or Settings) */}
         <AnimatePresence>
           {(showChat || showSettings) && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
@@ -4667,7 +4662,7 @@ export function VideoConsultation() {
                   {showChat ? <MessageSquare className="w-4 h-4 text-medical-400" /> : <Settings className="w-4 h-4 text-medical-400" />}
                   {showChat ? 'In-Call Chat' : 'Call Settings'}
                 </h3>
-                <button 
+                <button
                   onClick={() => { setShowChat(false); setShowSettings(false); }}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                 >
@@ -4687,11 +4682,10 @@ export function VideoConsultation() {
                     ) : (
                       chatMessages.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-                            msg.isMe 
-                              ? 'bg-medical-500 text-white rounded-br-sm' 
-                              : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-sm'
-                          }`}>
+                          <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${msg.isMe
+                            ? 'bg-medical-500 text-white rounded-br-sm'
+                            : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-sm'
+                            }`}>
                             {!msg.isMe && <p className="text-[10px] font-bold text-medical-400 mb-0.5">{msg.sender}</p>}
                             <p>{msg.text}</p>
                             <p className={`text-[10px] mt-1 ${msg.isMe ? 'text-white/60' : 'text-slate-500'}`}>
@@ -4705,11 +4699,11 @@ export function VideoConsultation() {
                   </div>
                   <div className="p-4 border-t border-slate-800 bg-slate-900">
                     <form onSubmit={(e) => { e.preventDefault(); sendChatMessage(); }} className="relative">
-                      <input 
+                      <input
                         type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Type a message..." 
+                        placeholder="Type a message..."
                         className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-4 pr-10 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-medical-500"
                       />
                       <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-medical-400 hover:text-medical-300">
@@ -4750,29 +4744,29 @@ export function VideoConsultation() {
       {/* Controls */}
       <div className="h-24 bg-slate-900/80 backdrop-blur-xl border-t border-slate-800 px-4 md:px-8 flex items-center justify-between">
         <div className="flex items-center gap-6 hidden md:flex">
-           <div className="text-white">
-             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Session Duration</p>
-             <p className="text-xl font-mono font-bold text-emerald-400">{formatTimer(timer)}</p>
-           </div>
+          <div className="text-white">
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Session Duration</p>
+            <p className="text-xl font-mono font-bold text-emerald-400">{formatTimer(timer)}</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 md:gap-4 mx-auto md:mx-0">
-          <button 
+          <button
             onClick={() => setIsMuted(!isMuted)}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'}`}
           >
             {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setIsCameraOff(!isCameraOff)}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isCameraOff ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'}`}
           >
             {isCameraOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
           </button>
-          
+
           {user?.role === 'doctor' && (
-            <button 
+            <button
               onClick={() => setShowPrescriptionModal(true)}
               className="w-12 h-12 rounded-full flex items-center justify-center transition-all bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 shadow-lg shadow-emerald-500/10"
               title="Write Prescription"
@@ -4781,7 +4775,7 @@ export function VideoConsultation() {
             </button>
           )}
 
-          <button 
+          <button
             onClick={handleEndCall}
             className="px-6 py-3 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-all flex items-center gap-2 shadow-lg shadow-red-500/30 ml-2"
           >
@@ -4790,24 +4784,24 @@ export function VideoConsultation() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-           <button 
-             onClick={() => { setShowChat(!showChat); setShowSettings(false); }}
-             className={`p-2.5 rounded-xl transition-colors border ${showChat ? 'bg-medical-500/20 text-medical-400 border-medical-500/30' : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'}`}
-           >
-             <MessageSquare className="w-5 h-5" />
-           </button>
-           <button 
-             onClick={() => { setShowSettings(!showSettings); setShowChat(false); }}
-             className={`p-2.5 rounded-xl transition-colors border ${showSettings ? 'bg-medical-500/20 text-medical-400 border-medical-500/30' : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'}`}
-           >
-             <Settings className="w-5 h-5" />
-           </button>
+          <button
+            onClick={() => { setShowChat(!showChat); setShowSettings(false); }}
+            className={`p-2.5 rounded-xl transition-colors border ${showChat ? 'bg-medical-500/20 text-medical-400 border-medical-500/30' : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'}`}
+          >
+            <MessageSquare className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => { setShowSettings(!showSettings); setShowChat(false); }}
+            className={`p-2.5 rounded-xl transition-colors border ${showSettings ? 'bg-medical-500/20 text-medical-400 border-medical-500/30' : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'}`}
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
       {/* Prescription Modal (Doctor Only) */}
       {user?.role === 'doctor' && (
-        <CreatePrescriptionModal 
+        <CreatePrescriptionModal
           isOpen={showPrescriptionModal}
           appointmentId={roomId}
           preSelectedPatientId={appointmentData?.patient?._id || appointmentData?.patient}
@@ -4842,14 +4836,14 @@ export function ServicesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((s, i) => (
             <div key={i} className="glass-card p-8 border border-slate-200 dark:border-slate-700 hover:shadow-2xl hover:shadow-medical-500/10 transition-all group">
-               <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                 <s.icon className={`w-7 h-7 ${s.color}`} />
-               </div>
-               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{s.title}</h3>
-               <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">{s.desc}</p>
-               <button className="text-medical-600 dark:text-medical-400 font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
-                 Learn More <ArrowRight className="w-4 h-4" />
-               </button>
+              <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <s.icon className={`w-7 h-7 ${s.color}`} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{s.title}</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">{s.desc}</p>
+              <button className="text-medical-600 dark:text-medical-400 font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
+                Learn More <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           ))}
         </div>
